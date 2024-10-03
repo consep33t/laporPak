@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { query, where, collection, getDocs } from "firebase/firestore";
-import { db } from "@/app/config/firebaseConfig";
+import db from "@/app/config/firebaseConfig";
 
 const handler = NextAuth({
   providers: [
