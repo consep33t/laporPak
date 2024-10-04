@@ -1,67 +1,54 @@
+// pages/api/auth/[...nextauth].js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { query, where, collection, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import db from "@/app/config/firebaseConfig";
 
-const handler = NextAuth({
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
+      credentials: {
+        email: {
+          label: "Email",
+          type: "text",
+          placeholder: "email@example.com",
+        },
+        password: { label: "Password", type: "password" },
+      },
       async authorize(credentials) {
-        const { email, password } = credentials;
+        const q = query(
+          collection(db, "users"),
+          where("email", "==", credentials.email),
+          where("password", "==", credentials.password)
+        );
 
-        try {
-          console.log("CREDENTIALS: ", { email, password });
+        const querySnapshot = await getDocs(q);
 
-          const q = query(collection(db, "user"), where("email", "==", email));
-          const querySnapshot = await getDocs(q);
-
-          if (!querySnapshot.empty) {
-            const userDoc = querySnapshot.docs[0];
-            const user = userDoc.data();
-            console.log("USER FOUND: ", user);
-
-            if (user.password === password) {
-              return {
-                id: userDoc.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-              };
-            } else {
-              throw new Error("Invalid password");
-            }
-          } else {
-            throw new Error("User not found");
-          }
-        } catch (error) {
-          console.error("ERROR: ", error);
-          return null;
+        if (!querySnapshot.empty) {
+          const user = querySnapshot.docs[0].data();
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+          };
+        } else {
+          throw new Error("Email or password is incorrect");
         }
       },
     }),
   ],
   pages: {
     signIn: "/auth/login",
+    error: "/auth/login", // Redirect to login page on error
   },
-  session: {
-    strategy: "jwt",
-  },
-  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-      return token;
-    },
     async session({ session, token }) {
-      session.user.id = token.id;
-      session.user.role = token.role;
+      session.user.id = token.sub;
       return session;
     },
   },
-});
+  secret: process.env.NEXTAUTH_SECRET,
+};
 
-export { handler as GET, handler as POST };
+export default NextAuth(authOptions);
