@@ -1,10 +1,16 @@
-// pages/api/auth/[...nextauth].js
+// app/api/auth/[...nextauth]/route.js
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import db from "@/app/config/firebaseConfig";
 
-export const authOptions = {
+const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -17,30 +23,36 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const q = query(
-          collection(db, "users"),
-          where("email", "==", credentials.email),
-          where("password", "==", credentials.password)
-        );
-
+        // Query Firestore to find the user with the provided email and password
+        const usersRef = collection(db, "user");
+        const q = query(usersRef, where("email", "==", credentials.email));
         const querySnapshot = await getDocs(q);
 
-        if (!querySnapshot.empty) {
-          const user = querySnapshot.docs[0].data();
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-          };
-        } else {
-          throw new Error("Email or password is incorrect");
+        if (querySnapshot.empty) {
+          throw new Error("User not found");
         }
+
+        // Extract user data from Firestore
+        const userDoc = querySnapshot.docs[0];
+        const user = userDoc.data();
+
+        // Check if the provided password matches the stored password
+        if (user.password !== credentials.password) {
+          throw new Error("Invalid email or password");
+        }
+
+        // Return user data if authentication is successful
+        return {
+          id: userDoc.id,
+          name: user.name,
+          email: user.email,
+        };
       },
     }),
   ],
   pages: {
     signIn: "/auth/login",
-    error: "/auth/login", // Redirect to login page on error
+    error: "/auth/login",
   },
   callbacks: {
     async session({ session, token }) {
@@ -51,4 +63,5 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-export default NextAuth(authOptions);
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
