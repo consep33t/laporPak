@@ -1,35 +1,42 @@
 "use client";
 import { useState, useRef } from "react";
 import Image from "next/image";
+import {
+  getStorage,
+  ref,
+  uploadString,
+  getDownloadURL,
+} from "firebase/storage";
+import { app } from "../config/firebaseConfig";
 
-const CameraCapture = () => {
-  const [capturedImage, setCapturedImage] = useState(null); // State untuk gambar yang diambil
+const CameraCapture = ({ onImageUpload }) => {
+  const [capturedImage, setCapturedImage] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [stream, setStream] = useState(null); // Menyimpan stream video untuk memberhentikannya nanti
+  const [stream, setStream] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
 
-  // Fungsi untuk memulai stream kamera
+  const storage = getStorage(app);
+
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      setStream(stream); // Menyimpan stream untuk nanti dihentikan
+      setStream(stream);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play(); // Mulai memutar video dari kamera
+        videoRef.current.play();
       }
     } catch (error) {
       console.error("Error accessing camera: ", error);
     }
   };
 
-  // Fungsi untuk menghentikan stream kamera
   const stopCamera = () => {
     if (stream) {
-      stream.getTracks().forEach((track) => track.stop()); // Matikan stream kamera
+      stream.getTracks().forEach((track) => track.stop());
     }
   };
 
-  // Fungsi untuk menangkap gambar dari video feed
   const captureImage = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -39,25 +46,44 @@ const CameraCapture = () => {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      // Menggambar frame video ke dalam canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Mengubah gambar dari canvas menjadi data URL
       const imageDataUrl = canvas.toDataURL("image/png");
-      setCapturedImage(imageDataUrl); // Menyimpan URL gambar di state
+      setCapturedImage(imageDataUrl);
 
-      // Pause video feed setelah gambar diambil
       video.pause();
       if (stream) {
-        stream.getTracks().forEach((track) => track.stop()); // Matikan stream kamera
+        stream.getTracks().forEach((track) => track.stop());
       }
     }
   };
 
-  // Fungsi untuk mengulangi pengambilan gambar
+  const uploadImageToStorage = async () => {
+    if (!capturedImage) return;
+
+    try {
+      const imageName = `images/${Date.now()}.png`;
+      const imageRef = ref(storage, imageName);
+
+      await uploadString(imageRef, capturedImage, "data_url");
+
+      const downloadURL = await getDownloadURL(imageRef);
+      setImageUrl(downloadURL);
+      console.log("Image uploaded to Firebase Storage! URL:", downloadURL);
+
+      // Panggil fungsi props onImageUpload untuk mengirim URL ke komponen parent
+      if (onImageUpload) {
+        onImageUpload(downloadURL);
+      }
+    } catch (error) {
+      console.error("Error uploading image: ", error.message);
+    }
+  };
+
   const retakePhoto = () => {
-    setCapturedImage(null); // Reset gambar yang diambil
-    startCamera(); // Mulai ulang kamera
+    setCapturedImage(null);
+    setImageUrl(null);
+    startCamera();
   };
 
   return (
@@ -74,13 +100,20 @@ const CameraCapture = () => {
             </button>
           </>
         )}
-        {capturedImage && (
-          <button onClick={retakePhoto}>Ulangi Pengambilan Foto</button>
+        {capturedImage && !imageUrl && (
+          <>
+            <button onClick={retakePhoto}>Ulangi Pengambilan Foto</button>
+            <button
+              onClick={uploadImageToStorage}
+              style={{ marginLeft: "10px" }}
+            >
+              Simpan Gambar
+            </button>
+          </>
         )}
       </div>
 
       <div>
-        {/* Video stream dari kamera */}
         <video
           ref={videoRef}
           style={{
@@ -90,10 +123,8 @@ const CameraCapture = () => {
           }}
         />
 
-        {/* Canvas untuk menangkap gambar, disembunyikan */}
         <canvas ref={canvasRef} style={{ display: "none" }} />
 
-        {/* Tampilkan gambar yang diambil */}
         {capturedImage && (
           <div>
             <h3>Gambar yang Diambil:</h3>
@@ -104,6 +135,12 @@ const CameraCapture = () => {
               height={500}
               style={{ width: "100%", maxWidth: "500px" }}
             />
+          </div>
+        )}
+
+        {imageUrl && (
+          <div>
+            <h3>Gambar Berhasil di simpan</h3>
           </div>
         )}
       </div>

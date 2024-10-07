@@ -3,14 +3,14 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Circle } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import FlyToLocation from "./FlyToLocation"; // Import komponen FlyToLocation
+import FlyToLocation from "./FlyToLocation";
 
-const LeafletMap = () => {
+const LeafletMap = ({ onLocationUpdate }) => {
   const [position, setPosition] = useState([51.505, -0.09]);
-  const [latitude, setLatitude] = useState(""); // State untuk latitude input
-  const [longitude, setLongitude] = useState(""); // State untuk longitude input
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
   const [loading, setLoading] = useState(true);
-  const [radius, setRadius] = useState(500); // State untuk radius lingkaran (500 meter)
+  const [radius, setRadius] = useState(500);
 
   useEffect(() => {
     // Get the device's current location
@@ -19,41 +19,51 @@ const LeafletMap = () => {
         (location) => {
           const { latitude, longitude } = location.coords;
           setPosition([latitude, longitude]);
+          setLatitude(latitude);
+          setLongitude(longitude);
           setLoading(false);
+
+          // Panggil fungsi onLocationUpdate dengan latitude dan longitude
+          if (onLocationUpdate) {
+            onLocationUpdate(latitude, longitude);
+          }
         },
         (error) => {
           console.error("Error getting location: ", error);
-          setLoading(false); // Set loading to false even if there's an error
+          setLoading(false);
         },
         {
-          enableHighAccuracy: true, // High accuracy for more precise data
-          timeout: 10000, // Maximum time before giving up on location
-          maximumAge: 0, // Disable caching of location data
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
         }
       );
     }
-  }, []);
+  }, [onLocationUpdate]);
 
   if (loading) {
     return <p>Loading location...</p>;
   }
 
-  // Custom marker icon menggunakan PNG custom
   const customMarkerIcon = new L.Icon({
-    iconUrl: "/icons/pin-map.png", // Path ke file PNG di folder public/icons/
-    iconSize: [40, 50], // Sesuaikan ukuran icon (width, height)
-    iconAnchor: [20, 40], // Anchor posisi icon (supaya titik anchor berada di ujung bawah icon)
-    popupAnchor: [0, -40], // Posisi popup relatif terhadap icon
+    iconUrl: "/icons/pin-map.png",
+    iconSize: [40, 50],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
   });
 
-  // Fungsi untuk memperbarui posisi berdasarkan input latitude dan longitude
   const handleSearch = () => {
     if (latitude && longitude) {
       const lat = parseFloat(latitude);
       const lon = parseFloat(longitude);
 
       if (!isNaN(lat) && !isNaN(lon)) {
-        setPosition([lat, lon]); // Update posisi berdasarkan input
+        setPosition([lat, lon]);
+
+        // Panggil fungsi onLocationUpdate dengan latitude dan longitude baru
+        if (onLocationUpdate) {
+          onLocationUpdate(lat, lon);
+        }
       } else {
         alert("Please enter valid latitude and longitude.");
       }
@@ -82,6 +92,11 @@ const LeafletMap = () => {
         <button onClick={handleSearch}>Cari Lokasi</button>
       </div>
 
+      <div style={{ marginBottom: "10px" }}>
+        <strong>Latitude:</strong> {position[0]} <br />
+        <strong>Longitude:</strong> {position[1]}
+      </div>
+
       <MapContainer
         center={position}
         zoom={13}
@@ -91,14 +106,12 @@ const LeafletMap = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
         />
-        {/* Marker dengan custom icon */}
         <Marker position={position} icon={customMarkerIcon} />
-        {/* Lingkaran radius sekitar marker */}
         <Circle
           center={position}
-          radius={radius} // Radius dalam meter, misalnya 500 meter
-          color="red" // Warna garis lingkaran
-          fillColor="red" // Warna isi lingkaran
+          radius={radius}
+          color="red"
+          fillColor="red"
           fillOpacity={0.2}
         />
         <FlyToLocation position={position} />

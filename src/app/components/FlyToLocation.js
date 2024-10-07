@@ -6,7 +6,7 @@ const FlyToLocation = ({ position }) => {
 
   useEffect(() => {
     if (position) {
-      map.flyTo(position, 13); // Terbang ke lokasi baru dengan zoom level 13
+      map.flyTo(position, 13);
     }
   }, [position, map]);
 

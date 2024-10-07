@@ -1,4 +1,3 @@
-// app/auth/login/page.js
 "use client";
 
 import { signIn } from "next-auth/react";
@@ -28,15 +27,16 @@ export default function LoginPage() {
 
   return (
     <div className="flex justify-center items-center h-screen w-full">
-      <div className="container bg-slate-600 w-96 h-96 flex justify-center items-center flex-col">
+      <div className="container bg-white rounded-lg p-8 border-2 w-96 h-96 flex justify-center items-center flex-col">
         <h1>Login</h1>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 my-5">
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
             required
+            className="border-2 border-gray-300 p-2 rounded-md"
           />
           <input
             type="password"
@@ -44,8 +44,14 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             required
+            className="border-2 border-gray-300 p-2 rounded-md"
           />
-          <button type="submit">Login</button>
+          <button
+            type="submit"
+            className="bg-blue-500 text-white p-2 rounded-md"
+          >
+            Login
+          </button>
         </form>
         {error && <p style={{ color: "red" }}>{error}</p>}
       </div>
