@@ -42,7 +42,11 @@ const LeafletMap = ({ onLocationUpdate }) => {
   }, [onLocationUpdate]);
 
   if (loading) {
-    return <p>Loading location...</p>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl">Loading location...</p>
+      </div>
+    );
   }
 
   const customMarkerIcon = new L.Icon({
@@ -73,26 +77,31 @@ const LeafletMap = ({ onLocationUpdate }) => {
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: "20px" }}>
+    <div className="max-w-4xl mx-auto p-4">
+      <div className="mb-4 gap-2">
         <input
           type="text"
           placeholder="Latitude"
           value={latitude}
           onChange={(e) => setLatitude(e.target.value)}
-          style={{ marginRight: "10px" }}
+          className="border border-gray-300 p-2 rounded mr-2"
         />
         <input
           type="text"
           placeholder="Longitude"
           value={longitude}
           onChange={(e) => setLongitude(e.target.value)}
-          style={{ marginRight: "10px" }}
+          className="border border-gray-300 p-2 rounded mr-2"
         />
-        <button onClick={handleSearch}>Cari Lokasi</button>
+        <button
+          onClick={handleSearch}
+          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition"
+        >
+          Cari Lokasi
+        </button>
       </div>
 
-      <div style={{ marginBottom: "10px" }}>
+      <div className="mb-2">
         <strong>Latitude:</strong> {position[0]} <br />
         <strong>Longitude:</strong> {position[1]}
       </div>
@@ -100,7 +109,7 @@ const LeafletMap = ({ onLocationUpdate }) => {
       <MapContainer
         center={position}
         zoom={13}
-        style={{ height: "100vh", width: "100%" }}
+        style={{ height: "30vh", width: "100%" }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

@@ -71,7 +71,6 @@ const CameraCapture = ({ onImageUpload }) => {
       setImageUrl(downloadURL);
       console.log("Image uploaded to Firebase Storage! URL:", downloadURL);
 
-      // Panggil fungsi props onImageUpload untuk mengirim URL ke komponen parent
       if (onImageUpload) {
         onImageUpload(downloadURL);
       }
@@ -87,60 +86,76 @@ const CameraCapture = ({ onImageUpload }) => {
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: "20px" }}>
+    <div className="max-w-lg mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4 text-center">
+        Kamera Pengambilan Gambar
+      </h1>
+      <div className="mb-4 flex justify-center">
         {!capturedImage && (
-          <>
-            <button onClick={startCamera}>Buka Kamera</button>
-            <button onClick={captureImage} style={{ marginLeft: "10px" }}>
+          <div className="flex space-x-2">
+            <button
+              onClick={startCamera}
+              className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
+            >
+              Buka Kamera
+            </button>
+            <button
+              onClick={captureImage}
+              className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition"
+            >
               Ambil Gambar
             </button>
-            <button onClick={stopCamera} style={{ marginLeft: "10px" }}>
+            <button
+              onClick={stopCamera}
+              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+            >
               Hentikan Kamera
             </button>
-          </>
+          </div>
         )}
         {capturedImage && !imageUrl && (
-          <>
-            <button onClick={retakePhoto}>Ulangi Pengambilan Foto</button>
+          <div className="flex flex-col space-y-2">
+            <button
+              onClick={retakePhoto}
+              className="bg-yellow-500 text-white px-3 py-2 rounded hover:bg-yellow-600 transition"
+            >
+              Ulangi Pengambilan Foto
+            </button>
             <button
               onClick={uploadImageToStorage}
-              style={{ marginLeft: "10px" }}
+              className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 transition"
             >
               Simpan Gambar
             </button>
-          </>
+          </div>
         )}
       </div>
 
-      <div>
+      <div className="flex justify-center">
         <video
           ref={videoRef}
-          style={{
-            width: "100%",
-            maxWidth: "500px",
-            display: capturedImage ? "none" : "block",
-          }}
+          className={`w-full max-w-sm ${capturedImage ? "hidden" : "block"}`}
         />
 
-        <canvas ref={canvasRef} style={{ display: "none" }} />
+        <canvas ref={canvasRef} className="hidden" />
 
         {capturedImage && (
-          <div>
-            <h3>Gambar yang Diambil:</h3>
+          <div className="flex flex-col items-center">
+            <h3 className="text-lg font-semibold mt-4">Gambar yang Diambil:</h3>
             <Image
               src={capturedImage}
               alt="Captured"
               width={500}
               height={500}
-              style={{ width: "100%", maxWidth: "500px" }}
+              className="w-full max-w-sm"
             />
           </div>
         )}
 
         {imageUrl && (
-          <div>
-            <h3>Gambar Berhasil di simpan</h3>
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold">Gambar Berhasil Disimpan</h3>
+            <p className="text-sm text-gray-500">URL: {imageUrl}</p>
           </div>
         )}
       </div>

@@ -28,7 +28,7 @@ export default function LoginPage() {
   return (
     <div className="flex justify-center items-center h-screen w-full">
       <div className="container bg-white rounded-lg p-8 border-2 w-96 h-96 flex justify-center items-center flex-col">
-        <h1>Login</h1>
+        <h1>Silahkan Masukkan Data Diri Anda</h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 my-5">
           <input
             type="email"
@@ -52,8 +52,17 @@ export default function LoginPage() {
           >
             Login
           </button>
+          <p>
+            Belum punya akun?{" "}
+            <a
+              href="/auth/register"
+              className="text-blue-500 hover:text-blue-700"
+            >
+              Register
+            </a>
+          </p>
         </form>
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && <p className="text-red-500">Email atau Password salah</p>}
       </div>
     </div>
   );
