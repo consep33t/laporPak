@@ -3,7 +3,7 @@ import { useState } from "react";
 import { register } from "@/app/utils/firestoreutils";
 import { useRouter } from "next/navigation";
 
-const registerPage = () => {
+const RegisterPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -131,4 +131,4 @@ const registerPage = () => {
   );
 };
 
-export default registerPage;
+export default RegisterPage;
