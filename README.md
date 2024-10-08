@@ -31,22 +31,18 @@ Dependencies
 Install dependencies:
 
 bash
-Salin kode
 npm install
 Install Firebase SDK:
 
 bash
-Salin kode
 npm install firebase
 Install Leaflet and React Leaflet for interactive maps:
 
 bash
-Salin kode
 npm install leaflet react react-dom react-leaflet
 Install NextAuth for authentication:
 
 bash
-Salin kode
 npm install next-auth
 Setup
 1. Firebase Configuration
@@ -57,7 +53,6 @@ Set up Firestore and Firebase Storage in your Firebase project.
 Obtain the Firebase configuration keys (API key, Auth domain, etc.), then create a .env file in the root of your project and add the following variables:
 
 bash
-Salin kode
 NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
@@ -67,19 +62,16 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 2. NextAuth Configuration
 Add your NEXTAUTH_URL in the .env file:
 bash
-Salin kode
 NEXTAUTH_URL=http://localhost:3000
 3. Leaflet Map Configuration
 Ensure that the Leaflet CSS is loaded. Add the following to your _app.js or in your global CSS:
 
 js
-Salin kode
 import 'leaflet/dist/leaflet.css';
 Running the Application
 To start the development server, run:
 
 bash
-Salin kode
 npm run dev
 The application will be available at http://localhost:3000.
 
@@ -93,6 +85,10 @@ Firebase Setup
 Create a Firebase account if you don't have one already.
 Create a new Firebase project.
 Set up Firestore Database for data storage:
+
+
+untuk mengakses semua kaporan ada di "/admin"
+
 Go to the Firebase console -> Firestore Database -> Create a database.
 Set up Firebase Storage for uploading images:
 Go to the Firebase console -> Storage -> Create a storage bucket.
