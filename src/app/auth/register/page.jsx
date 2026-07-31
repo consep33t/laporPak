@@ -45,20 +45,20 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white p-8 rounded shadow">
-        <h1 className="text-2xl font-bold text-center mb-6">Register</h1>
+    <div className="flex justify-center items-center min-h-screen bg-clayBg px-4 py-12">
+      <div className="w-full max-w-md shadow-clay rounded-[2.5rem] bg-clayPrimary p-8 md:p-12 transition-all duration-300">
+        <h1 className="text-3xl font-bold text-center mb-8 text-clayBlue drop-shadow-sm">Register</h1>
 
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        {error && <p className="text-red-500 text-center font-bold mb-6 bg-red-100 px-4 py-2 rounded-xl shadow-sm">{error}</p>}
         {success && (
-          <p className="text-green-500 text-center mb-4">{success}</p>
+          <p className="text-green-600 text-center font-bold mb-6 bg-green-100 px-4 py-2 rounded-xl shadow-sm">{success}</p>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div>
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-bold text-clayText ml-2 mb-2"
             >
               Name
             </label>
@@ -68,16 +68,16 @@ const RegisterPage = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full shadow-clay-active bg-clayPrimary text-clayText rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all font-medium"
               placeholder="Enter your name"
               required
             />
           </div>
 
-          <div className="mb-4">
+          <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-bold text-clayText ml-2 mb-2"
             >
               Email
             </label>
@@ -87,16 +87,16 @@ const RegisterPage = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full shadow-clay-active bg-clayPrimary text-clayText rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all font-medium"
               placeholder="Enter your email"
               required
             />
           </div>
 
-          <div className="mb-6">
+          <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-bold text-clayText ml-2 mb-2"
             >
               Password
             </label>
@@ -106,7 +106,7 @@ const RegisterPage = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="w-full shadow-clay-active bg-clayPrimary text-clayText rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all font-medium"
               placeholder="Enter your password"
               required
             />
@@ -114,15 +114,15 @@ const RegisterPage = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+            className="shadow-clay-btn active:shadow-clay-btn-active bg-clayBlue hover:opacity-90 text-white font-bold py-4 rounded-2xl transition-all duration-200 mt-4"
           >
             Register
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-8 text-center font-medium text-clayText">
           Already have an account?{" "}
-          <a href="/auth/login" className="text-blue-500 hover:underline">
+          <a href="/auth/login" className="text-clayBlue hover:opacity-80 font-bold ml-1 transition-colors">
             Login here
           </a>
         </p>

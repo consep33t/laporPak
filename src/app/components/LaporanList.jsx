@@ -48,29 +48,29 @@ const LaporanList = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">Daftar Laporan</h1>
-      <div className="flex gap-4 grid grid-cols-1 md:grid-cols-2">
+    <div className="w-full">
+      <h1 className="text-3xl font-bold mb-8 text-center text-clayBlue drop-shadow-sm">Daftar Semua Laporan</h1>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
         {laporanList.length === 0 ? (
-          <p className="text-center text-gray-600">No laporan found.</p>
+          <p className="text-center text-gray-500 italic font-medium col-span-2">Belum ada laporan.</p>
         ) : (
           laporanList.map((laporan) => (
-            <div key={laporan.id} className="mb-4 p-4 border rounded shadow-md">
-              <h2 className="text-lg font-semibold">Nama: {laporan.name}</h2>
-              <p className="text-sm text-gray-600">
-                Tanggal: {formatDate(laporan.date)}
-              </p>
-              <p className="mt-2">Deskripsi: {laporan.description}</p>
-              <p className="mt-2">
-                <strong>Lokasi:</strong> {formatLocation(laporan.location)}
-              </p>
+            <div key={laporan.id} className="shadow-clay-active rounded-[1.5rem] p-6 bg-clayBg flex flex-col items-center text-center transition-all">
+              <h2 className="text-xl font-bold text-clayText mb-2">{laporan.name}</h2>
+              <span className="text-sm font-bold text-clayBlue mb-4 bg-white/60 px-3 py-1 rounded-full shadow-sm">
+                {formatDate(laporan.date)}
+              </span>
+              <p className="mb-4 text-gray-700 leading-relaxed font-medium">{laporan.description}</p>
+              <div className="flex items-center gap-2 mb-4 bg-white/30 px-4 py-2 rounded-xl shadow-sm text-sm font-semibold text-gray-700">
+                <span>📍</span> {formatLocation(laporan.location)}
+              </div>
               {laporan.imageUrl && (
                 <Image
                   src={laporan.imageUrl}
                   width={300}
                   height={300}
                   alt="Laporan"
-                  className="mt-2 w-full max-w-sm h-auto rounded-md"
+                  className="w-full h-48 object-cover rounded-[1.5rem] shadow-sm border-4 border-white/50"
                 />
               )}
             </div>

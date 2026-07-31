@@ -86,44 +86,41 @@ const CameraCapture = ({ onImageUpload }) => {
   };
 
   return (
-    <div className="max-w-lg mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        Kamera Pengambilan Gambar
-      </h1>
-      <div className="mb-4 flex justify-center">
+    <div className="w-full flex flex-col items-center p-2">
+      <div className="mb-6 flex flex-wrap justify-center gap-4 w-full">
         {!capturedImage && (
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap justify-center gap-4 w-full">
             <button
               onClick={startCamera}
-              className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
+              className="shadow-clay-btn active:shadow-clay-btn-active bg-clayBlue hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 flex-1 md:flex-none"
             >
               Buka Kamera
             </button>
             <button
               onClick={captureImage}
-              className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition"
+              className="shadow-clay-btn active:shadow-clay-btn-active bg-clayGreen hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 flex-1 md:flex-none"
             >
               Ambil Gambar
             </button>
             <button
               onClick={stopCamera}
-              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+              className="shadow-clay-btn active:shadow-clay-btn-active bg-clayRed hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 flex-1 md:flex-none"
             >
-              Hentikan Kamera
+              Hentikan
             </button>
           </div>
         )}
         {capturedImage && !imageUrl && (
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-wrap justify-center gap-4 w-full">
             <button
               onClick={retakePhoto}
-              className="bg-yellow-500 text-white px-3 py-2 rounded hover:bg-yellow-600 transition"
+              className="shadow-clay-btn active:shadow-clay-btn-active bg-clayYellow hover:opacity-90 text-clayText font-bold py-3 px-6 rounded-2xl transition-all duration-200 flex-1 md:flex-none"
             >
-              Ulangi Pengambilan Foto
+              Ulangi Foto
             </button>
             <button
               onClick={uploadImageToStorage}
-              className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 transition"
+              className="shadow-clay-btn active:shadow-clay-btn-active bg-clayBlue hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 flex-1 md:flex-none"
             >
               Simpan Gambar
             </button>
@@ -131,31 +128,31 @@ const CameraCapture = ({ onImageUpload }) => {
         )}
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center w-full">
         <video
           ref={videoRef}
-          className={`w-full max-w-sm ${capturedImage ? "hidden" : "block"}`}
+          className={`w-full max-w-sm rounded-[1.5rem] shadow-clay ${capturedImage ? "hidden" : "block"}`}
         />
 
         <canvas ref={canvasRef} className="hidden" />
 
         {capturedImage && (
-          <div className="flex flex-col items-center">
-            <h3 className="text-lg font-semibold mt-4">Gambar yang Diambil:</h3>
+          <div className="flex flex-col items-center w-full">
+            <h3 className="text-lg font-bold mt-4 mb-4 text-clayText">Gambar yang Diambil:</h3>
             <Image
               src={capturedImage}
               alt="Captured"
               width={500}
               height={500}
-              className="w-full max-w-sm"
+              className="w-full max-w-sm rounded-[1.5rem] shadow-clay border-4 border-white/50"
             />
           </div>
         )}
 
         {imageUrl && (
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold">Gambar Berhasil Disimpan</h3>
-            <p className="text-sm text-gray-500">URL: {imageUrl}</p>
+          <div className="mt-6 shadow-clay-active bg-clayPrimary rounded-2xl p-4 w-full text-center">
+            <h3 className="text-lg font-bold text-clayGreen mb-1">Gambar Berhasil Disimpan ✓</h3>
+            <p className="text-xs text-gray-500 truncate px-2">{imageUrl}</p>
           </div>
         )}
       </div>
