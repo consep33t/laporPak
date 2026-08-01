@@ -1,95 +1,107 @@
-# Laporan_desa
+<div align="center">
+  <img src="https://raw.githubusercontent.com/consep33t/laporPak/main/public/laporpak-logo.png" alt="LaporPak Logo" width="150" height="150" />
+  <h1>🚀 LaporPak V5</h1>
+  <p><b>Sistem Pelaporan Infrastruktur Desa Masa Depan</b></p>
+  <p><em>Berbasis Next.js 14, Supabase, Prisma & Animasi Claymorphism 3D</em></p>
+</div>
 
-## Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Setup](#setup)
-- [Running the Application](#running-the-application)
-- [Tech Stack](#tech-stack)
-- [Firebase Setup](#firebase-setup)
-- [License](#license)
+---
 
-## Overview
-This is a **Next.js** web application with features like authentication, user reports using a map (Leaflet), and image uploading to Firebase. The app also includes a dashboard for managing reports.
+## ✨ Ikhtisar
+**LaporPak** adalah *platform* pelaporan infrastruktur desa tingkat lanjut yang dirancang khusus untuk memfasilitasi komunikasi antara warga dan pemerintah daerah secara cepat, transparan, dan interaktif. 
 
-## Features
-- **Authentication**: Secure login and registration using **NextAuth**.
-- **Report System**: Users can create reports with descriptions, locations, and images.
-- **Firebase Integration**: Utilizes Firebase for data storage and image hosting.
-- **Interactive Maps**: Display user report locations using **React Leaflet**.
+Di **Versi 5 (V5)** ini, kami membawa perombakan total pada arsitektur UI/UX dengan mengusung gaya **3D Claymorphism** dipadukan dengan **Animasi Parallax Fisik (Spring Physics)**, menjadikannya salah satu portal pelaporan publik paling modern dan responsif.
 
-## Installation
-To get started with this project, ensure you have **Node.js** and **npm** installed. Then follow the instructions below.
+## 🌟 Fitur Unggulan
 
-### Prerequisites
-- **Node.js**: Download and install from [Node.js official website](https://nodejs.org/).
-- **npm**: Comes with Node.js. To check if you have npm installed, run the following command:
-  ```bash
-  npm -v
-Dependencies
-Install dependencies:
+### 🎨 1. Desain UI/UX Eksklusif (Claymorphism & Glassmorphism)
+- Semua elemen (tombol, form, dan kartu) didesain dengan konsep **Claymorphism** 3D (gelembung empuk membulat).
+- Latar belakang dilapisi dengan **Tekstur Kertas (Noise)** serta dipadukan dengan **Kaca Transparan (Backdrop Blur)**.
 
-bash
-npm install
-Install Firebase SDK:
+### 🎥 2. Animasi Parallax & Ornamen 3D Dinamis
+- Dilengkapi dengan *Framer Motion* yang menghadirkan **efek parallax 60FPS** tanpa lag.
+- Ornamen 3D interaktif (Pohon goyang, Awan berjalan, Mobil melayang) bereaksi terhadap pergerakan kursor dan *scroll* secara cerdas berkat pemisahan lapisan (Nested Framer Motion Layers).
 
-bash
-npm install firebase
-Install Leaflet and React Leaflet for interactive maps:
+### 🛡️ 3. Keamanan Tingkat Korporat
+- **IDOR Protection & Role-Based Access Control (RBAC):** Tidak sembarang orang dapat mengakses panel admin atau mengubah/menghapus laporan orang lain.
+- Validasi Input Server-Side & Autentikasi ketat berbasis sesi **Supabase**.
 
-bash
-npm install leaflet react react-dom react-leaflet
-Install NextAuth for authentication:
+### 📸 4. Pengunggahan Multi-Gambar Cerdas (Camera & Gallery)
+- **Kamera Langsung & Pilihan Galeri:** Pengguna bebas memfoto kerusakan jalan secara langsung via web.
+- **Mendukung Hingga 5 Gambar:** Laporan lebih akurat dengan multiple-angle.
+- **Kompresi Otomatis & Lightbox Interaktif:** Semua gambar dikompresi agar ukuran kecil. Saat gambar diklik, akan masuk ke mode **Fullscreen Lightbox** di mana Anda dapat melakukan *Zoom-in/out* dan *Free Panning*.
 
-bash
-npm install next-auth
-Setup
-1. Firebase Configuration
-Create a Firebase account and set up a project. Follow the steps in the official documentation: Firebase Documentation.
+### 📍 5. Peta Geografis Presisi (Leaflet & OpenStreetMap)
+- Mengambil titik koordinat (Latitude & Longitude) otomatis.
+- **Reverse Geocoding:** Secara otomatis mengubah pin koordinat menjadi teks alamat nama jalan yang bisa dibaca.
 
-Set up Firestore and Firebase Storage in your Firebase project.
+### 💬 6. Interaksi Publik (Bubble Chat & Reaksi)
+- Setiap warga dapat ikut **Mendukung (Upvote)** atau **Menolak (Downvote)** laporan untuk menaikkan skala prioritas (SLA).
+- Fitur komentar berbentuk gelembung (Bubble Chat) layaknya WhatsApp, lengkap dengan stempel waktu dan fitur laporkan (*Flag/Report*).
 
-Obtain the Firebase configuration keys (API key, Auth domain, etc.), then create a .env file in the root of your project and add the following variables:
+---
 
-bash
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-2. NextAuth Configuration
-Add your NEXTAUTH_URL in the .env file:
-bash
-NEXTAUTH_URL=http://localhost:3000
-3. Leaflet Map Configuration
-Ensure that the Leaflet CSS is loaded. Add the following to your _app.js or in your global CSS:
+## 🛠️ Stack Teknologi
 
-js
-import 'leaflet/dist/leaflet.css';
-Running the Application
-To start the development server, run:
+Dapur pacu LaporPak V5 ditenagai oleh teknologi *Modern Web Stack* paling populer:
 
-bash
-npm run dev
-The application will be available at http://localhost:3000.
+- **Framework Utama:** [Next.js 14](https://nextjs.org/) (App Router & Server Actions)
+- **Styling & UI:** [Tailwind CSS](https://tailwindcss.com/) + Custom Claymorphism
+- **Animasi:** [Framer Motion](https://www.framer.com/motion/) (Fisika Pegas / Spring)
+- **Database & Auth:** [Supabase](https://supabase.com/) (PostgreSQL & Row Level Security)
+- **ORM:** [Prisma](https://www.prisma.io/)
+- **Peta & GIS:** [Leaflet.js](https://leafletjs.com/) & React-Leaflet
+- **Manajemen Gambar:** Supabase Storage (Bucket)
 
-Tech Stack
-Framework: Next.js
-Authentication: NextAuth.js
-Database & Storage: Firebase Firestore & Firebase Storage
-Maps: React Leaflet
-CSS Framework: Tailwind CSS
-Firebase Setup
-Create a Firebase account if you don't have one already.
-Create a new Firebase project.
-Set up Firestore Database for data storage:
+---
 
+## 🚀 Cara Menjalankan Proyek Secara Lokal
 
-untuk mengakses semua kaporan ada di "/admin"
+Pastikan Anda memiliki **Node.js 18+** terinstal.
 
-Go to the Firebase console -> Firestore Database -> Create a database.
-Set up Firebase Storage for uploading images:
-Go to the Firebase console -> Storage -> Create a storage bucket.
-You can follow detailed Firebase setup instructions from their official docs: Firebase Documentation.
+1. **Clone Repositori ini**
+   ```bash
+   git clone https://github.com/consep33t/laporPak.git
+   cd laporPak
+   ```
+
+2. **Instal Dependensi**
+   ```bash
+   npm install
+   ```
+
+3. **Konfigurasi Environment Variable**
+   Buat file `.env` dan `.env.local` di direktori utama, lalu masukkan kredensial Supabase Anda:
+   ```env
+   NEXT_PUBLIC_DBSUPABASE_URL="https://[PROJECT_ID].supabase.co"
+   NEXT_PUBLIC_DBSUPABASE_ANON_KEY="your-anon-key"
+   POSTGRES_PRISMA_URL="postgres://[USER]:[PASSWORD]@[HOST]:5432/postgres"
+   POSTGRES_URL_NON_POOLING="postgres://[USER]:[PASSWORD]@[HOST]:5432/postgres"
+   ```
+
+4. **Sinkronisasi Database (Prisma)**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
+
+5. **Jalankan Server Development**
+   ```bash
+   npm run dev
+   ```
+   Buka `http://localhost:3000` di peramban (browser) Anda untuk melihat hasilnya.
+
+---
+
+## 👥 Peran Pengguna
+
+Sistem ini memiliki dua tingkatan (Role):
+
+1. **Warga (Pelapor):** Dapat membuat profil, melapor dengan bukti multi-gambar & lokasi akurat, ikut berdiskusi, dan memantau SLA laporan mereka. Diberi lencana ("Warga Aktif", "Pahlawan Desa") berdasarkan jumlah dukungan yang diraih.
+2. **Admin Tunggal:** Dikhususkan untuk **Ageng Prayoga** sebagai verifikator mutlak. Mampu menolak, menyetujui, memberi masa estimasi, serta melampirkan *Foto Bukti Perbaikan* jika infrastruktur sudah diselesaikan oleh tim teknis.
+
+---
+
+<div align="center">
+  <p>Diciptakan dengan penuh dedikasi menggunakan <b>Antigravity</b>. 🚀</p>
+</div>
