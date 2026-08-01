@@ -5,6 +5,8 @@ import PublicFeed from "./components/PublicFeed";
 import { createClient } from "@/utils/supabase/client";
 import { ensureUserProfile } from "@/app/actions/user";
 
+// haha
+
 export default function Home() {
   const [user, setUser] = useState(null);
   const router = useRouter();
@@ -30,9 +32,9 @@ export default function Home() {
     <div className="flex flex-col items-center w-full p-4 md:p-8">
       <div className="w-full max-w-4xl mt-4">
         <div className="mb-8 px-2 text-center md:text-left z-10 relative">
-          <h1 
+          <h1
             className="text-4xl md:text-5xl font-extrabold text-clayBlue mb-4"
-            style={{ 
+            style={{
               textShadow: '3px 3px 0 #a3bffa, 6px 6px 0 #e0e7ff, 4px 4px 10px rgba(0,0,0,0.15)',
               letterSpacing: '-1px'
             }}
@@ -43,7 +45,7 @@ export default function Home() {
             Feed interaktif transparansi laporan infrastruktur dan pelayanan publik.
           </p>
         </div>
-        
+
         <div className="w-full">
           <PublicFeed currentUser={user} />
         </div>
