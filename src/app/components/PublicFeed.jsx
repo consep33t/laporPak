@@ -81,7 +81,7 @@ export default function PublicFeed({ currentUser }) {
   return (
     <div className="flex flex-col gap-10 w-full max-w-3xl mx-auto">
       {reports.map((r) => {
-        const isLiked = r.likes.some((l) => l.userEmail === currentUser?.email);
+        const isLiked = (r.likes || []).some((l) => l.userEmail === currentUser?.email);
         const displayName = r.isAnonymous ? "Hamba Allah (Anonim)" : (r.user?.fullName || r.name || "Warga");
         
         return (
@@ -131,11 +131,11 @@ export default function PublicFeed({ currentUser }) {
                 onClick={() => handleLike(r.id)}
                 className={`flex items-center gap-2 font-bold px-4 py-2 rounded-xl transition-colors shadow-sm active:scale-95 ${isLiked ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
               >
-                {isLiked ? '❤️' : '🤍'} {r._count?.likes || r.likes.length} Dukungan
+                {isLiked ? '❤️' : '🤍'} {r._count?.likes ?? (r.likes || []).length} Dukungan
               </button>
               
               <span className="text-sm font-bold text-gray-500">
-                💬 {r._count?.comments || r.comments.length} Komentar
+                💬 {r._count?.comments ?? (r.comments || []).length} Komentar
               </span>
             </div>
 
