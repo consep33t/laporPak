@@ -22,7 +22,7 @@ const LaporanPage = () => {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Infrastruktur");
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState(null);
+  const [imageUrls, setImageUrls] = useState([]);
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
   const [fullAddress, setFullAddress] = useState("");
@@ -66,8 +66,8 @@ const LaporanPage = () => {
 
   const handleSave = async (emergency = false) => {
     if (!session) return;
-    if (!imageUrl || !lat || !lng || !title || !description) {
-      showError("Mohon lengkapi Judul, Kategori, Foto, Lokasi, dan Deskripsi.");
+    if (imageUrls.length === 0 || !lat || !lng || !title || !description) {
+      if(typeof window !== "undefined" && window.showError) window.showError("Mohon lengkapi Judul, Kategori, Foto (minimal 1), Lokasi, dan Deskripsi.");
       return;
     }
     
@@ -79,7 +79,8 @@ const LaporanPage = () => {
       description,
       userEmail: user.email,
       isAnonymous,
-      imageUrl,
+      imageUrl: imageUrls[0], // backward compatibility
+      imageUrls: imageUrls,
       lat,
       lng,
       fullAddress,
@@ -143,9 +144,9 @@ const LaporanPage = () => {
           
           <div className="flex flex-col gap-6">
             <div>
-              <label className="block text-sm font-bold text-clayText ml-2 mb-2">Ambil Foto Bukti</label>
+              <label className="block text-sm font-bold text-clayText ml-2 mb-2">Pilih/Ambil Foto Bukti (Maks. 5)</label>
               <div className="shadow-clay-active rounded-3xl overflow-hidden bg-white p-4">
-                <CameraCapture onImageUpload={setImageUrl} />
+                <CameraCapture onImagesUpdate={setImageUrls} />
               </div>
             </div>
 

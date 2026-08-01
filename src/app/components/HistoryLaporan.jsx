@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { getHistoryLaporanUser } from "../actions/laporan";
 import Image from "next/image";
+import ImageCarousel from "./ImageCarousel";
 
 const HistoryLaporan = () => {
   const [session, setSession] = useState(null);
@@ -103,13 +104,13 @@ const HistoryLaporan = () => {
                   </div>
                 )}
                 
-                <Image
-                  src={laporan.imageUrl}
-                  width={300}
-                  height={300}
-                  alt="Laporan"
-                  className="w-full h-48 object-cover rounded-[1.5rem] shadow-sm border-4 border-white/50"
-                />
+                {/* Multi-Image Carousel */}
+                <div className="w-full mt-2">
+                  <ImageCarousel 
+                    images={laporan.imageUrls && laporan.imageUrls.length > 0 ? laporan.imageUrls : [laporan.imageUrl]} 
+                    altText="Laporan" 
+                  />
+                </div>
 
                 {laporan.status === "Diproses" && laporan.estimatedDays && (
                   <div className="mt-4 p-3 bg-purple-50 rounded-xl w-full">

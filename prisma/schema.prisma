@@ -48,7 +48,8 @@ model Laporan {
   isAnonymous     Boolean  @default(false)
   
   // Media & Lokasi Presisi
-  imageUrl        String   // Bukti Foto HD
+  imageUrl        String   // Bukti Foto HD (Main Image)
+  imageUrls       String[] @default([]) // Extra images (up to 5)
   afterImageUrl   String?  // Foto Bukti Perbaikan dari Admin
   lat             Float    // Latitude presisi
   lng             Float    // Longitude presisi

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { getLaporan, toggleLike, addComment, toggleCommentLike, reportComment } from "@/app/actions/laporan";
-import Image from "next/image";
+import ImageCarousel from "./ImageCarousel";
 import { MoreHorizontal, ThumbsUp, ThumbsDown, Flag } from "lucide-react";
 
 export default function PublicFeed({ currentUser }) {
@@ -114,13 +114,11 @@ export default function PublicFeed({ currentUser }) {
               <p className="text-gray-700 font-medium whitespace-pre-line">{r.description}</p>
             </div>
 
-            <div className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-inner border border-gray-100 mt-2">
-              <Image 
-                src={r.imageUrl} 
-                alt="Bukti" 
-                fill
-                className="object-cover" 
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            {/* Multi-Image Carousel */}
+            <div className="mt-2">
+              <ImageCarousel 
+                images={r.imageUrls && r.imageUrls.length > 0 ? r.imageUrls : [r.imageUrl]} 
+                altText={r.title} 
               />
             </div>
             

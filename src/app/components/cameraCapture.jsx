@@ -3,23 +3,43 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 
-const CameraCapture = ({ onImageUpload }) => {
-  const [capturedImage, setCapturedImage] = useState(null);
+const CameraCapture = ({ onImagesUpdate }) => {
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [stream, setStream] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
+
+  const MAX_IMAGES = 5;
+
+  const handleImageUploaded = (newUrl) => {
+    const newImages = [...uploadedImages, newUrl];
+    setUploadedImages(newImages);
+    if (onImagesUpdate) onImagesUpdate(newImages);
+  };
+
+  const removeImage = (indexToRemove) => {
+    const newImages = uploadedImages.filter((_, idx) => idx !== indexToRemove);
+    setUploadedImages(newImages);
+    if (onImagesUpdate) onImagesUpdate(newImages);
+  };
 
   const startCamera = async () => {
+    if (uploadedImages.length >= MAX_IMAGES) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       setStream(stream);
+      setIsCameraActive(true);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
       }
     } catch (error) {
       console.error("Error accessing camera: ", error);
+      if(typeof window !== "undefined" && window.showError) window.showError("Gagal mengakses kamera.");
     }
   };
 
@@ -27,15 +47,22 @@ const CameraCapture = ({ onImageUpload }) => {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
     }
+    setIsCameraActive(false);
   };
 
-  const captureImage = () => {
+  const captureImageAndUpload = async () => {
+    if (uploadedImages.length >= MAX_IMAGES) {
+      if(typeof window !== "undefined" && window.showError) window.showError(`Maksimal ${MAX_IMAGES} gambar.`);
+      return;
+    }
+
     const canvas = canvasRef.current;
     const video = videoRef.current;
 
     if (canvas && video) {
+      setIsProcessing(true);
       const context = canvas.getContext("2d");
-      // Resize to ensure it's not overly huge
+      
       let width = video.videoWidth;
       let height = video.videoHeight;
       const MAX_WIDTH = 1280;
@@ -49,44 +76,64 @@ const CameraCapture = ({ onImageUpload }) => {
 
       canvas.width = width;
       canvas.height = height;
-
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Compress with JPEG and 0.7 quality to aim for < 1MB
       const imageDataUrl = canvas.toDataURL("image/jpeg", 0.7);
-      setCapturedImage(imageDataUrl);
-
+      
       video.pause();
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
+      stopCamera();
+
+      await uploadBase64(imageDataUrl);
+      setIsProcessing(false);
     }
   };
 
-  const uploadImageToStorage = async () => {
-    if (!capturedImage) return;
+  const handleFileUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
 
+    if (uploadedImages.length + files.length > MAX_IMAGES) {
+      if(typeof window !== "undefined" && window.showError) window.showError(`Maksimal ${MAX_IMAGES} gambar. Anda hanya bisa menambah ${MAX_IMAGES - uploadedImages.length} lagi.`);
+      return;
+    }
+
+    setIsProcessing(true);
+    for (const file of files) {
+      try {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        await new Promise((resolve) => {
+          reader.onload = async () => {
+            await uploadBase64(reader.result);
+            resolve();
+          };
+        });
+      } catch (err) {
+        console.error("Upload error", err);
+      }
+    }
+    setIsProcessing(false);
+    // reset input
+    if(fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadBase64 = async (base64Url) => {
     try {
       const supabase = createClient();
-      const imageName = `${Date.now()}.jpg`;
+      const imageName = `${Date.now()}-${Math.floor(Math.random()*1000)}.jpg`;
 
-      // Convert base64 data url to Blob
-      const res = await fetch(capturedImage);
+      const res = await fetch(base64Url);
       const blob = await res.blob();
-      const base64 = capturedImage.split(",")[1];
+      const base64Data = base64Url.split(",")[1];
 
-      // Ensure blob is under 1MB
-      if (base64.length > 1048576) {
-        if(typeof window !== "undefined" && window.showError) window.showError("Error: Ukuran gambar melebihi 1MB meskipun sudah dikompresi. Silakan ambil ulang dengan pencahayaan lebih minim.");
-        setProcessing(false);
-        return;
+      if (base64Data.length > 2097152) { // 2MB
+         if(typeof window !== "undefined" && window.showError) window.showError("Ukuran gambar terlalu besar. Coba kompres atau gunakan gambar lain.");
+         return;
       }
 
       const { data, error } = await supabase.storage
         .from('laporpak-bucket')
-        .upload(imageName, blob, {
-          contentType: 'image/jpeg'
-        });
+        .upload(imageName, blob, { contentType: 'image/jpeg' });
 
       if (error) throw error;
 
@@ -94,95 +141,100 @@ const CameraCapture = ({ onImageUpload }) => {
         .from('laporpak-bucket')
         .getPublicUrl(imageName);
 
-      const downloadURL = publicUrlData.publicUrl;
-      setImageUrl(downloadURL);
-      console.log("Image uploaded to Supabase Storage! URL:", downloadURL);
-
-      if (onImageUpload) {
-        onImageUpload(downloadURL);
-      }
+      handleImageUploaded(publicUrlData.publicUrl);
     } catch (error) {
       console.error("Error uploading image: ", error.message);
+      if(typeof window !== "undefined" && window.showError) window.showError("Gagal mengunggah gambar.");
     }
-  };
-
-  const retakePhoto = () => {
-    setCapturedImage(null);
-    setImageUrl(null);
-    startCamera();
   };
 
   return (
     <div className="w-full flex flex-col items-center p-2">
-      <div className="mb-6 flex flex-wrap justify-center gap-4 w-full">
-        {!capturedImage && (
-          <div className="flex flex-wrap justify-center gap-4 w-full">
-            <button
-              onClick={startCamera}
-              className="shadow-clay-btn active:shadow-clay-btn-active bg-clayBlue hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 flex-1 md:flex-none"
-            >
-              Buka Kamera
-            </button>
-            <button
-              onClick={captureImage}
-              className="shadow-clay-btn active:shadow-clay-btn-active bg-clayGreen hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 flex-1 md:flex-none"
-            >
-              Ambil Gambar
-            </button>
-            <button
-              onClick={stopCamera}
-              className="shadow-clay-btn active:shadow-clay-btn-active bg-clayRed hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 flex-1 md:flex-none"
-            >
-              Hentikan
-            </button>
-          </div>
-        )}
-        {capturedImage && !imageUrl && (
-          <div className="flex flex-wrap justify-center gap-4 w-full">
-            <button
-              onClick={retakePhoto}
-              className="shadow-clay-btn active:shadow-clay-btn-active bg-clayYellow hover:opacity-90 text-clayText font-bold py-3 px-6 rounded-2xl transition-all duration-200 flex-1 md:flex-none"
-            >
-              Ulangi Foto
-            </button>
-            <button
-              onClick={uploadImageToStorage}
-              className="shadow-clay-btn active:shadow-clay-btn-active bg-clayBlue hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 flex-1 md:flex-none"
-            >
-              Simpan Gambar
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Tombol Aksi */}
+      {uploadedImages.length < MAX_IMAGES && !isCameraActive && (
+        <div className="flex flex-col md:flex-row justify-center gap-4 w-full mb-6">
+          <button
+            onClick={startCamera}
+            className="shadow-clay-btn active:shadow-clay-btn-active bg-clayBlue hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all flex-1"
+          >
+            📸 Buka Kamera
+          </button>
+          
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="shadow-clay-btn active:shadow-clay-btn-active bg-clayGreen hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all flex-1"
+          >
+            📁 Pilih dari Galeri
+          </button>
+          <input 
+            type="file" 
+            ref={fileInputRef}
+            className="hidden" 
+            accept="image/*" 
+            multiple 
+            onChange={handleFileUpload} 
+          />
+        </div>
+      )}
 
-      <div className="flex flex-col items-center w-full">
+      {isProcessing && (
+        <div className="w-full mb-6 p-4 text-center text-clayBlue font-bold animate-pulse">
+          ⏳ Sedang memproses dan mengunggah...
+        </div>
+      )}
+
+      {/* Mode Kamera Aktif */}
+      <div className={`flex flex-col items-center w-full mb-6 ${isCameraActive ? "block" : "hidden"}`}>
         <video
           ref={videoRef}
-          className={`w-full max-w-sm rounded-[1.5rem] shadow-clay ${capturedImage ? "hidden" : "block"}`}
+          className="w-full max-w-sm rounded-[1.5rem] shadow-clay border-4 border-white/50 mb-4"
         />
-
         <canvas ref={canvasRef} className="hidden" />
-
-        {capturedImage && (
-          <div className="flex flex-col items-center w-full">
-            <h3 className="text-lg font-bold mt-4 mb-4 text-clayText">Gambar yang Diambil:</h3>
-            <Image
-              src={capturedImage}
-              alt="Captured"
-              width={500}
-              height={500}
-              className="w-full max-w-sm rounded-[1.5rem] shadow-clay border-4 border-white/50"
-            />
-          </div>
-        )}
-
-        {imageUrl && (
-          <div className="mt-6 shadow-clay-active bg-clayPrimary rounded-2xl p-4 w-full text-center">
-            <h3 className="text-lg font-bold text-clayGreen mb-1">Gambar Berhasil Disimpan ✓</h3>
-            <p className="text-xs text-gray-500 truncate px-2">{imageUrl}</p>
-          </div>
-        )}
+        
+        <div className="flex justify-center gap-4 w-full">
+           <button
+             onClick={captureImageAndUpload}
+             disabled={isProcessing}
+             className="shadow-clay-btn active:shadow-clay-btn-active bg-clayGreen hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all"
+           >
+             Cetak & Unggah
+           </button>
+           <button
+             onClick={stopCamera}
+             className="shadow-clay-btn active:shadow-clay-btn-active bg-clayRed hover:opacity-90 text-white font-bold py-3 px-6 rounded-2xl transition-all"
+           >
+             Batal
+           </button>
+        </div>
       </div>
+
+      {/* Grid Preview Image */}
+      {uploadedImages.length > 0 && (
+        <div className="w-full">
+          <h3 className="text-sm font-bold text-clayText mb-3">
+            Gambar Laporan ({uploadedImages.length}/{MAX_IMAGES})
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {uploadedImages.map((url, idx) => (
+              <div key={idx} className="relative group rounded-2xl overflow-hidden shadow-clay border-4 border-white/50">
+                <Image
+                  src={url}
+                  alt={`Preview ${idx + 1}`}
+                  width={300}
+                  height={300}
+                  className="w-full h-32 object-cover"
+                />
+                <button
+                  onClick={() => removeImage(idx)}
+                  className="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full shadow-md font-bold text-sm transform hover:scale-110 transition-all"
+                >
+                  X
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

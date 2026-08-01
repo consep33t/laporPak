@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { getAdminLaporan, updateLaporanStatus } from "../actions/admin";
 import Image from "next/image";
+import ImageCarousel from "./ImageCarousel";
 
 const LaporanList = () => {
   const [laporanList, setLaporanList] = useState([]);
@@ -113,13 +114,11 @@ const LaporanList = () => {
                     <p className="text-sm font-bold text-gray-500">📍 Lokasi Kejadian: {laporan.fullAddress}</p>
                   )}
 
-                  <div className="relative w-full h-64 rounded-xl overflow-hidden shadow-inner border border-gray-100 mt-2">
-                    <Image 
-                      src={laporan.imageUrl} 
-                      alt="Bukti" 
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  {/* Multi-Image Carousel */}
+                  <div className="w-full mt-2">
+                    <ImageCarousel 
+                      images={laporan.imageUrls && laporan.imageUrls.length > 0 ? laporan.imageUrls : [laporan.imageUrl]} 
+                      altText="Bukti" 
                     />
                   </div>
                 </div>

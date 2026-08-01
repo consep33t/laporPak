@@ -32,6 +32,7 @@ export async function saveLaporan(data) {
         userEmail: user.email, // Force user email from session
         isAnonymous: data.isAnonymous,
         imageUrl: data.imageUrl,
+        imageUrls: data.imageUrls || [],
         lat: data.lat,
         lng: data.lng,
         fullAddress: data.fullAddress,
