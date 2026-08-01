@@ -159,11 +159,8 @@ export async function addComment(laporanId, text) {
     const userEmail = user.email;
     const userName = user.user_metadata?.name || user.email.split("@")[0];
     
-    // Validate if the user is an admin from DB to set isAdmin correctly
-    const profile = await prisma.userProfile.findUnique({
-      where: { email: userEmail },
-      select: { role: true } // Need to check if role exists, wait, we don't have 'role' in UserProfile. Admin is stored in user_metadata or we can check specific email. The user said ageng prayoga is admin. Let's just rely on auth metadata if we can't. Actually, wait. UserProfile does not have a role column in schema.prisma. Let's just set isAdmin to false for now, or check if email matches admin.
-    });
+    // Validate if the user is an admin from metadata or email
+    const isAdmin = user.user_metadata?.role === 'admin' || user.email === 'agengprayoga@gmail.com' || user.email === 'admin@laporpak.com';
 
     const comment = await prisma.comment.create({
       data: {
@@ -171,7 +168,7 @@ export async function addComment(laporanId, text) {
         userEmail,
         userName,
         text,
-        isAdmin: false, 
+        isAdmin, 
       }
     });
     return { success: true, data: comment };
