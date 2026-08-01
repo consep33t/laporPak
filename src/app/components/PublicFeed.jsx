@@ -142,10 +142,10 @@ export default function PublicFeed({ currentUser }) {
             {/* BUBBLE CHAT COMMENT SECTION */}
             <div className="mt-4 bg-[#f0f2f5] rounded-3xl p-4 md:p-6 shadow-inner border border-gray-200">
               <div className="max-h-80 overflow-y-auto flex flex-col gap-4 mb-4 pr-2 custom-scrollbar">
-                {r.comments.length === 0 ? (
+                {(r.comments || []).length === 0 ? (
                   <p className="text-xs text-center text-gray-400 font-bold italic py-4">Mulai diskusi pertama...</p>
                 ) : (
-                  r.comments.map(c => {
+                  (r.comments || []).map(c => {
                     const isMyComment = c.userEmail === currentUser?.email;
                     const hasUserLiked = c.likes?.some(l => l.isLike === true);
                     const hasUserDisliked = c.likes?.some(l => l.isLike === false);
