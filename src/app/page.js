@@ -10,16 +10,12 @@ export default function Home() {
   const supabase = createClient();
 
   useEffect(() => {
-    const checkUser = async () => {
+    const fetchSession = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/auth/login");
-      } else {
-        setUser(user);
-      }
+      setUser(user);
     };
-    checkUser();
-  }, [router, supabase.auth]);
+    fetchSession();
+  }, [supabase.auth]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

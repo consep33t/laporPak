@@ -8,7 +8,7 @@ const RegisterPage = () => {
     name: "",
     email: "",
     password: "",
-    role: "user",
+    role: "member",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");

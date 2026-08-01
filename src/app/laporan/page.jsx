@@ -31,16 +31,12 @@ const LaporanPage = () => {
   };
 
   useEffect(() => {
-    const checkUser = async () => {
+    const fetchSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/auth/login");
-      } else {
-        setSession(session);
-      }
+      setSession(session);
     };
-    checkUser();
-  }, [router, supabase.auth]);
+    fetchSession();
+  }, [supabase.auth]);
 
   const handleSave = async () => {
     if (session && imageUrl && location && description) {
