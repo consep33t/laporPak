@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import { register } from "@/app/utils/firestoreutils";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -35,7 +35,20 @@ const RegisterPage = () => {
     }
 
     try {
-      const userId = await register({ name, email, password, role });
+      const supabase = createClient();
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            role,
+          },
+        },
+      });
+
+      if (signUpError) throw signUpError;
+      
       setSuccess("Registration successful!");
       alert("Registration successful!");
       router.push("/auth/login");

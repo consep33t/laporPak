@@ -1,13 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import Image from "next/image";
-import {
-  getStorage,
-  ref,
-  uploadString,
-  getDownloadURL,
-} from "firebase/storage";
-import { app } from "../config/firebaseConfig";
+import { createClient } from "@/utils/supabase/client";
 
 const CameraCapture = ({ onImageUpload }) => {
   const [capturedImage, setCapturedImage] = useState(null);
@@ -15,8 +9,6 @@ const CameraCapture = ({ onImageUpload }) => {
   const canvasRef = useRef(null);
   const [stream, setStream] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
-
-  const storage = getStorage(app);
 
   const startCamera = async () => {
     try {
@@ -43,12 +35,25 @@ const CameraCapture = ({ onImageUpload }) => {
 
     if (canvas && video) {
       const context = canvas.getContext("2d");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      // Resize to ensure it's not overly huge
+      let width = video.videoWidth;
+      let height = video.videoHeight;
+      const MAX_WIDTH = 1280;
+      const MAX_HEIGHT = 720;
+      
+      if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+        width = Math.floor(width * ratio);
+        height = Math.floor(height * ratio);
+      }
+
+      canvas.width = width;
+      canvas.height = height;
 
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      const imageDataUrl = canvas.toDataURL("image/png");
+      // Compress with JPEG and 0.7 quality to aim for < 1MB
+      const imageDataUrl = canvas.toDataURL("image/jpeg", 0.7);
       setCapturedImage(imageDataUrl);
 
       video.pause();
@@ -62,14 +67,34 @@ const CameraCapture = ({ onImageUpload }) => {
     if (!capturedImage) return;
 
     try {
-      const imageName = `images/${Date.now()}.png`;
-      const imageRef = ref(storage, imageName);
+      const supabase = createClient();
+      const imageName = `${Date.now()}.jpg`;
 
-      await uploadString(imageRef, capturedImage, "data_url");
+      // Convert base64 data url to Blob
+      const res = await fetch(capturedImage);
+      const blob = await res.blob();
 
-      const downloadURL = await getDownloadURL(imageRef);
+      // Ensure blob is under 1MB
+      if (blob.size > 1048576) {
+        alert("Error: Ukuran gambar melebihi 1MB meskipun sudah dikompresi. Silakan ambil ulang dengan pencahayaan lebih minim.");
+        return;
+      }
+
+      const { data, error } = await supabase.storage
+        .from('laporpak-bucket')
+        .upload(imageName, blob, {
+          contentType: 'image/jpeg'
+        });
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('laporpak-bucket')
+        .getPublicUrl(imageName);
+
+      const downloadURL = publicUrlData.publicUrl;
       setImageUrl(downloadURL);
-      console.log("Image uploaded to Firebase Storage! URL:", downloadURL);
+      console.log("Image uploaded to Supabase Storage! URL:", downloadURL);
 
       if (onImageUpload) {
         onImageUpload(downloadURL);

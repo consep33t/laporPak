@@ -2,18 +2,19 @@
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import CameraCapture from "../components/cameraCapture";
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { saveDataToFirestore } from "../utils/firestoreutils";
+import { saveLaporan } from "../actions/laporan";
+import { createClient } from "@/utils/supabase/client";
 
 const LeafletMap = dynamic(() => import("../components/leafleatMap"), {
   ssr: false,
 });
 
 const LaporanPage = () => {
-  const { data: session, status } = useSession();
+  const [session, setSession] = useState(null);
   const router = useRouter();
+  const supabase = createClient();
   const [imageUrl, setImageUrl] = useState(null);
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState(""); // Tambahkan state untuk deskripsi
@@ -30,16 +31,22 @@ const LaporanPage = () => {
   };
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
-    }
-  }, [status, router]);
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/auth/login");
+      } else {
+        setSession(session);
+      }
+    };
+    checkUser();
+  }, [router, supabase.auth]);
 
   const handleSave = async () => {
     if (session && imageUrl && location && description) {
       const { user } = session;
       const data = {
-        name: user.name,
+        name: user.user_metadata?.name || user.email,
         email: user.email,
         imageUrl: imageUrl,
         location: location,
@@ -47,7 +54,8 @@ const LaporanPage = () => {
         description: description,
       };
       try {
-        await saveDataToFirestore(data);
+        const response = await saveLaporan(data);
+        if (!response.success) throw new Error(response.error);
         alert("Data berhasil disimpan!");
         router.push("/");
       } catch (error) {

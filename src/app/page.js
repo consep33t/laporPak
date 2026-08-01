@@ -1,28 +1,36 @@
 "use client";
-import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import HistoryLaporan from "./components/HistoryLaporan";
+import { createClient } from "@/utils/supabase/client";
 
 export default function Home() {
-  const { data: session, status } = useSession();
+  const [user, setUser] = useState(null);
   const router = useRouter();
-
-  const handleLogout = () => {
-    router.push("/auth/login");
-  };
+  const supabase = createClient();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
-    }
-  }, [status, router]);
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/auth/login");
+      } else {
+        setUser(user);
+      }
+    };
+    checkUser();
+  }, [router, supabase.auth]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+  };
 
   return (
     <div className="flex flex-col items-center min-h-screen w-full p-8 md:p-12 gap-10">
       <div className="w-full max-w-4xl shadow-clay rounded-[2rem] p-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-clayBg transition-all duration-300">
         <h1 className="text-3xl md:text-4xl font-bold text-clayBlue drop-shadow-sm text-center md:text-left">
-          Selamat Datang di LaporPak, <span className="text-clayText">{session?.user?.name}</span>
+          Selamat Datang di LaporPak, <span className="text-clayText">{user?.user_metadata?.name || user?.email}</span>
         </h1>
         <button
           onClick={handleLogout}

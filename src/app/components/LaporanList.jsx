@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getLaporan } from "../utils/firestoreutils";
+import { getLaporan } from "../actions/laporan";
 import Image from "next/image";
 
 const LaporanList = () => {

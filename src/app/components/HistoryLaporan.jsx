@@ -1,13 +1,22 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { getHistoryLaporanUser } from "../utils/firestoreutils";
+import { createClient } from "@/utils/supabase/client";
+import { getHistoryLaporanUser } from "../actions/laporan";
 import Image from "next/image";
 
 const HistoryLaporan = () => {
-  const { data: session } = useSession();
+  const [session, setSession] = useState(null);
   const [historyLaporan, setHistoryLaporan] = useState([]);
   const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+    };
+    fetchSession();
+  }, [supabase.auth]);
 
   useEffect(() => {
     const fetchHistoryLaporan = async () => {
@@ -31,7 +40,11 @@ const HistoryLaporan = () => {
       setLoading(false);
     };
 
-    fetchHistoryLaporan();
+    if (session) {
+      fetchHistoryLaporan();
+    } else {
+      setLoading(false);
+    }
   }, [session]);
 
   if (loading) {
