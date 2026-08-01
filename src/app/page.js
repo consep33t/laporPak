@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import HistoryLaporan from "./components/HistoryLaporan";
+import PublicFeed from "./components/PublicFeed";
 import { createClient } from "@/utils/supabase/client";
+import { ensureUserProfile } from "@/app/actions/user";
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -10,50 +11,41 @@ export default function Home() {
   const supabase = createClient();
 
   useEffect(() => {
-    const fetchSession = async () => {
+    const fetchSessionAndProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      if (user) {
+        const res = await ensureUserProfile();
+        if (res.error) {
+          console.error("Profile check error:", res.error);
+        } else if (res.needsCompletion) {
+          router.push("/profile");
+        }
+      }
     };
-    fetchSession();
-  }, [supabase.auth]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/auth/login");
-  };
+    fetchSessionAndProfile();
+  }, [supabase.auth, router]);
 
   return (
-    <div className="flex flex-col items-center min-h-screen w-full p-8 md:p-12 gap-10">
-      <div className="w-full max-w-4xl shadow-clay rounded-[2rem] p-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-clayBg transition-all duration-300">
-        <h1 className="text-3xl md:text-4xl font-bold text-clayBlue drop-shadow-sm text-center md:text-left">
-          Selamat Datang di LaporPak, <span className="text-clayText">{user?.user_metadata?.name || user?.email}</span>
-        </h1>
-        <button
-          onClick={handleLogout}
-          className="shadow-clay-btn active:shadow-clay-btn-active bg-clayRed hover:opacity-90 text-white font-bold py-3 px-8 rounded-full transition-all duration-200"
-        >
-          Logout
-        </button>
-      </div>
-
-      <div className="flex flex-col md:flex-row items-center gap-8 w-full max-w-4xl">
-        <div className="shadow-clay rounded-[2rem] p-10 flex-1 flex flex-col items-center justify-center bg-clayBg gap-6 text-center">
-          <div className="text-6xl">📝</div>
-          <h2 className="text-2xl font-bold">Punya Keluhan?</h2>
-          <p className="text-gray-500 font-medium">Laporkan masalah infrastruktur atau fasilitas desa di sini.</p>
-          <button
-            className="shadow-clay-btn active:shadow-clay-btn-active bg-clayBlue hover:opacity-90 text-white font-extrabold text-lg py-4 px-10 rounded-full transition-all duration-200 mt-2"
-            onClick={() => router.push("/laporan")}
-          >
-            Buat Laporan Baru
-          </button>
-        </div>
-      </div>
-
+    <div className="flex flex-col items-center w-full p-4 md:p-8">
       <div className="w-full max-w-4xl mt-4">
-        <h2 className="text-2xl font-bold mb-6 px-2 text-clayText">Riwayat Laporan Kamu</h2>
-        <div className="shadow-clay rounded-[2rem] p-6 md:p-10 bg-clayBg">
-          <HistoryLaporan />
+        <div className="mb-8 px-2 text-center md:text-left z-10 relative">
+          <h1 
+            className="text-4xl md:text-5xl font-extrabold text-clayBlue mb-4"
+            style={{ 
+              textShadow: '3px 3px 0 #a3bffa, 6px 6px 0 #e0e7ff, 4px 4px 10px rgba(0,0,0,0.15)',
+              letterSpacing: '-1px'
+            }}
+          >
+            🌍 Suara Warga
+          </h1>
+          <p className="text-gray-500 font-bold text-lg md:text-xl max-w-2xl bg-white/50 backdrop-blur-md inline-block p-3 rounded-2xl shadow-sm border border-white">
+            Feed interaktif transparansi laporan infrastruktur dan pelayanan publik.
+          </p>
+        </div>
+        
+        <div className="w-full">
+          <PublicFeed currentUser={user} />
         </div>
       </div>
     </div>

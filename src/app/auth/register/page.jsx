@@ -49,8 +49,7 @@ const RegisterPage = () => {
 
       if (signUpError) throw signUpError;
       
-      setSuccess("Registration successful!");
-      alert("Registration successful!");
+      if (typeof window !== "undefined" && window.showAlert) window.showAlert("Registration successful!");
       router.push("/auth/login");
     } catch (error) {
       setError("Registration failed: " + error.message);

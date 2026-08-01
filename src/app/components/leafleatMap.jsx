@@ -69,39 +69,41 @@ const LeafletMap = ({ onLocationUpdate }) => {
           onLocationUpdate(lat, lon);
         }
       } else {
-        alert("Please enter valid latitude and longitude.");
+        if(typeof window !== "undefined" && window.showError) window.showError("Please enter valid latitude and longitude.");
       }
     } else {
-      alert("Please enter both latitude and longitude.");
+      if(typeof window !== "undefined" && window.showError) window.showError("Please enter both latitude and longitude.");
     }
   };
 
   return (
     <div className="w-full">
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Latitude"
-          value={latitude}
-          onChange={(e) => setLatitude(e.target.value)}
-          className="flex-1 shadow-clay-active bg-clayPrimary text-clayText rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all font-medium"
-        />
-        <input
-          type="text"
-          placeholder="Longitude"
-          value={longitude}
-          onChange={(e) => setLongitude(e.target.value)}
-          className="flex-1 shadow-clay-active bg-clayPrimary text-clayText rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all font-medium"
-        />
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+          <input
+            type="text"
+            placeholder="Latitude"
+            value={latitude}
+            onChange={(e) => setLatitude(e.target.value)}
+            className="w-full min-w-0 shadow-clay-active bg-clayPrimary text-clayText rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all font-medium"
+          />
+          <input
+            type="text"
+            placeholder="Longitude"
+            value={longitude}
+            onChange={(e) => setLongitude(e.target.value)}
+            className="w-full min-w-0 shadow-clay-active bg-clayPrimary text-clayText rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all font-medium"
+          />
+        </div>
         <button
           onClick={handleSearch}
           className="shadow-clay-btn active:shadow-clay-btn-active bg-clayBlue hover:opacity-90 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-200"
         >
-          Cari
+          Cari Lokasi
         </button>
       </div>
 
-      <div className="mb-4 bg-white/60 px-4 py-2 rounded-xl shadow-sm text-sm font-semibold text-clayText text-center flex justify-center gap-4">
+      <div className="mb-4 shadow-clay-active bg-clayPrimary px-4 py-3 rounded-2xl text-sm font-bold text-clayText flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-6">
         <span><strong className="text-clayBlue">Lat:</strong> {position[0]}</span>
         <span><strong className="text-clayBlue">Long:</strong> {position[1]}</span>
       </div>

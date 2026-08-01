@@ -73,10 +73,12 @@ const CameraCapture = ({ onImageUpload }) => {
       // Convert base64 data url to Blob
       const res = await fetch(capturedImage);
       const blob = await res.blob();
+      const base64 = capturedImage.split(",")[1];
 
       // Ensure blob is under 1MB
-      if (blob.size > 1048576) {
-        alert("Error: Ukuran gambar melebihi 1MB meskipun sudah dikompresi. Silakan ambil ulang dengan pencahayaan lebih minim.");
+      if (base64.length > 1048576) {
+        if(typeof window !== "undefined" && window.showError) window.showError("Error: Ukuran gambar melebihi 1MB meskipun sudah dikompresi. Silakan ambil ulang dengan pencahayaan lebih minim.");
+        setProcessing(false);
         return;
       }
 

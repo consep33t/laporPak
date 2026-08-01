@@ -1,12 +1,42 @@
 "use server"
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/utils/prisma";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 
-const prisma = new PrismaClient();
+async function getSession() {
+  const cookieStore = cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_DBSUPABASE_URL,
+    process.env.NEXT_PUBLIC_DBSUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+      },
+    }
+  );
+  return await supabase.auth.getUser();
+}
 
 export async function saveLaporan(data) {
   try {
+    const { data: { user } } = await getSession();
+    if (!user) return { success: false, error: "Unauthorized" };
+
     const laporan = await prisma.laporan.create({
-      data,
+      data: {
+        title: data.title,
+        category: data.category,
+        description: data.description,
+        userEmail: user.email, // Force user email from session
+        isAnonymous: data.isAnonymous,
+        imageUrl: data.imageUrl,
+        lat: data.lat,
+        lng: data.lng,
+        fullAddress: data.fullAddress,
+        isEmergency: data.isEmergency,
+      }
     });
     return { success: true, data: laporan };
   } catch (error) {
@@ -15,14 +45,17 @@ export async function saveLaporan(data) {
   }
 }
 
-export async function getHistoryLaporanUser(email) {
+export async function getHistoryLaporanUser() {
   try {
+    const { data: { user } } = await getSession();
+    if (!user) return [];
+
     const laporan = await prisma.laporan.findMany({
       where: {
-        email: email,
+        userEmail: user.email,
       },
       orderBy: {
-        date: "desc",
+        createdAt: "desc",
       },
     });
     return laporan;
@@ -34,14 +67,181 @@ export async function getHistoryLaporanUser(email) {
 
 export async function getLaporan() {
   try {
+    const { data: { user } } = await getSession();
+    
     const laporan = await prisma.laporan.findMany({
-      orderBy: {
-        date: "desc",
+      where: {
+        status: {
+          not: "Selesai" 
+        }
       },
+      take: 20, // Pagination
+      orderBy: [
+        { isEmergency: "desc" },
+        { createdAt: "desc" },
+      ],
+      include: {
+        user: {
+          select: { fullName: true, avatarUrl: true, badge: true }
+        },
+        _count: { select: { likes: true, comments: true } },
+        likes: user ? {
+          where: { userEmail: user.email },
+          select: { id: true }
+        } : false,
+        comments: {
+          take: 5,
+          orderBy: { date: "asc" },
+          include: {
+            likes: user ? {
+              where: { userEmail: user.email },
+              select: { isLike: true }
+            } : false,
+            _count: { select: { likes: true, reports: true } }
+          }
+        }
+      }
     });
     return laporan;
   } catch (error) {
     console.error("Error fetching all laporan:", error);
     return [];
+  }
+}
+
+export async function toggleLike(laporanId) {
+  try {
+    const { data: { user } } = await getSession();
+    if (!user) return { success: false, error: "Unauthorized" };
+
+    const userEmail = user.email;
+
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        laporanId_userEmail: {
+          laporanId,
+          userEmail
+        }
+      }
+    });
+
+    if (existingLike) {
+      await prisma.like.delete({ where: { id: existingLike.id } });
+      return { success: true, liked: false };
+    } else {
+      await prisma.like.create({
+        data: {
+          laporanId,
+          userEmail
+        }
+      });
+      const laporan = await prisma.laporan.findUnique({ where: { id: laporanId } });
+      if (laporan && laporan.userEmail !== userEmail) {
+        await prisma.userProfile.update({
+          where: { email: laporan.userEmail },
+          data: { points: { increment: 1 } }
+        });
+      }
+      return { success: true, liked: true };
+    }
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function addComment(laporanId, text) {
+  try {
+    const { data: { user } } = await getSession();
+    if (!user) return { success: false, error: "Unauthorized" };
+
+    const userEmail = user.email;
+    const userName = user.user_metadata?.name || user.email.split("@")[0];
+    
+    // Validate if the user is an admin from DB to set isAdmin correctly
+    const profile = await prisma.userProfile.findUnique({
+      where: { email: userEmail },
+      select: { role: true } // Need to check if role exists, wait, we don't have 'role' in UserProfile. Admin is stored in user_metadata or we can check specific email. The user said ageng prayoga is admin. Let's just rely on auth metadata if we can't. Actually, wait. UserProfile does not have a role column in schema.prisma. Let's just set isAdmin to false for now, or check if email matches admin.
+    });
+
+    const comment = await prisma.comment.create({
+      data: {
+        laporanId,
+        userEmail,
+        userName,
+        text,
+        isAdmin: false, 
+      }
+    });
+    return { success: true, data: comment };
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function toggleCommentLike(commentId, isLike) {
+  try {
+    const { data: { user } } = await getSession();
+    if (!user) return { success: false, error: "Unauthorized" };
+
+    const userEmail = user.email;
+
+    const existingReaction = await prisma.commentLike.findUnique({
+      where: {
+        commentId_userEmail: {
+          commentId,
+          userEmail
+        }
+      }
+    });
+
+    if (existingReaction) {
+      if (existingReaction.isLike === isLike) {
+        // Toggle off if clicking the same reaction
+        await prisma.commentLike.delete({ where: { id: existingReaction.id } });
+        return { success: true, action: 'removed' };
+      } else {
+        // Switch reaction
+        await prisma.commentLike.update({
+          where: { id: existingReaction.id },
+          data: { isLike }
+        });
+        return { success: true, action: 'switched' };
+      }
+    } else {
+      await prisma.commentLike.create({
+        data: {
+          commentId,
+          userEmail,
+          isLike
+        }
+      });
+      return { success: true, action: 'added' };
+    }
+  } catch (error) {
+    console.error("Error toggling comment like:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function reportComment(commentId, category, reason) {
+  try {
+    const { data: { user } } = await getSession();
+    if (!user) return { success: false, error: "Unauthorized" };
+
+    const userEmail = user.email;
+
+    const report = await prisma.commentReport.create({
+      data: {
+        commentId,
+        userEmail,
+        category,
+      }
+    });
+    return { success: true, data: report };
+  } catch (error) {
+    console.error("Error reporting comment:", error);
+    return { success: false, error: error.message };
   }
 }

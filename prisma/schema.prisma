@@ -8,12 +8,144 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
+// 1. Profil Warga (Atomic Level)
+model UserProfile {
+  email         String   @id // Menggunakan email dari Supabase Auth
+  nik           String?  @unique // NIK KTP (16 digit)
+  fullName      String?
+  phoneNumber   String?
+  addressDetail String?  // Jalan, No Rumah
+  province      String?
+  city          String?
+  district      String?  // Kecamatan
+  village       String?  // Kelurahan/Desa
+  rt_rw         String?
+  postalCode    String?
+  avatarUrl     String?  // Foto profil
+  points        Int      @default(0) 
+  badge         String   @default("Warga Baru") 
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  laporan       Laporan[]
+  likes         Like[]
+  comments      Comment[]
+  commentLikes  CommentLike[]
+  commentReports CommentReport[]
+  notifications Notification[]
+}
+
+// 2. Laporan (Atomic Level)
 model Laporan {
+  id              String   @id @default(cuid())
+  title           String   // Maks 100 karakter
+  category        String   // Infrastruktur, Kebersihan, Keamanan, Layanan, Bencana
+  description     String
+  
+  // Relasi Pelapor
+  userEmail       String
+  user            UserProfile @relation(fields: [userEmail], references: [email])
+  isAnonymous     Boolean  @default(false)
+  
+  // Media & Lokasi Presisi
+  imageUrl        String   // Bukti Foto HD
+  afterImageUrl   String?  // Foto Bukti Perbaikan dari Admin
+  lat             Float    // Latitude presisi
+  lng             Float    // Longitude presisi
+  fullAddress     String?  // Hasil Reverse Geocoding API
+  
+  // State Machine Status
+  status          String   @default("Terkirim") // Terkirim, Ditinjau, Diproses, Selesai, Ditolak
+  isEmergency     Boolean  @default(false)      // Trigger dari Panic Button
+  
+  // SLA & Resolusi
+  estimatedDays   Int?     
+  processStartDate DateTime? 
+  adminResponse   String?  
+  
+  // Feedback Kualitas
+  ratingScore     Int?     // 1 sampai 5
+  ratingComment   String?  
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  likes           Like[]
+  comments        Comment[]
+
+  @@index([userEmail])
+  @@index([status, isEmergency, createdAt])
+}
+
+// 3. Interaksi Sosial: Likes
+model Like {
+  id        String  @id @default(cuid())
+  laporanId String
+  userEmail String
+  laporan   Laporan @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+  user      UserProfile @relation(fields: [userEmail], references: [email], onDelete: Cascade)
+  
+  @@unique([laporanId, userEmail])
+}
+
+// 4. Interaksi Sosial: Komentar (Diskusi Publik)
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  userEmail String
+  userName  String   // Disimpan agar cepat dirender tanpa join
+  date      DateTime @default(now())
+  isAdmin   Boolean  @default(false) 
+  
+  laporanId String
+  laporan   Laporan  @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+  user      UserProfile @relation(fields: [userEmail], references: [email], onDelete: Cascade)
+
+  likes     CommentLike[]
+  reports   CommentReport[]
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  commentId String
+  userEmail String
+  isLike    Boolean  // true = Like, false = Dislike
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      UserProfile @relation(fields: [userEmail], references: [email], onDelete: Cascade)
+  
+  @@unique([commentId, userEmail])
+}
+
+model CommentReport {
+  id        String   @id @default(cuid())
+  commentId String
+  userEmail String
+  category  String   // SARA, Pornografi, Kata Kasar, Lainnya
+  createdAt DateTime @default(now())
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      UserProfile @relation(fields: [userEmail], references: [email], onDelete: Cascade)
+}
+
+// 5. CMS Berita
+model Berita {
   id          String   @id @default(cuid())
-  name        String
-  email       String
-  imageUrl    String
-  location    String
-  date        String
-  description String
+  title       String
+  category    String   
+  content     String   
+  thumbnailUrl String?  
+  isPublished Boolean  @default(true)
+  authorEmail String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 6. In-App Notification (Pemberitahuan Otomatis ke User)
+model Notification {
+  id        String   @id @default(cuid())
+  userEmail String   
+  user      UserProfile @relation(fields: [userEmail], references: [email], onDelete: Cascade)
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  date      DateTime @default(now())
 }
