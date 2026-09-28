@@ -28,12 +28,12 @@ export default function PublicFeed({ currentUser }) {
       setReports((prev) =>
         prev.map((r) => {
           if (r.id === laporanId) {
-            const hasLiked = r.likes.some((l) => l.userEmail === currentUser.email);
+            // getLaporan() only returns the current user's likes, so a non-empty array means "liked"
+            const count = r._count?.likes ?? (r.likes || []).length;
             return {
               ...r,
-              likes: hasLiked
-                ? r.likes.filter((l) => l.userEmail !== currentUser.email)
-                : [...r.likes, { userEmail: currentUser.email }],
+              likes: res.liked ? [{ userEmail: currentUser.email }] : [],
+              _count: { ...r._count, likes: Math.max(0, count + (res.liked ? 1 : -1)) },
             };
           }
           return r;
@@ -81,7 +81,7 @@ export default function PublicFeed({ currentUser }) {
   return (
     <div className="flex flex-col gap-10 w-full max-w-3xl mx-auto">
       {reports.map((r) => {
-        const isLiked = (r.likes || []).some((l) => l.userEmail === currentUser?.email);
+        const isLiked = !!currentUser && (r.likes || []).length > 0;
         const displayName = r.isAnonymous ? "Hamba Allah (Anonim)" : (r.user?.fullName || r.name || "Warga");
         
         return (

@@ -73,7 +73,7 @@ const LaporanList = () => {
           <p className="text-center text-gray-500 italic font-medium">Belum ada laporan masuk.</p>
         ) : (
           laporanList.map((laporan) => {
-            const urgency = getUrgency(laporan.likes.length, laporan.isEmergency);
+            const urgency = getUrgency(laporan._count?.likes ?? 0, laporan.isEmergency);
             
             return (
               <div key={laporan.id} className={`shadow-clay-active rounded-[2rem] p-6 bg-white flex flex-col lg:flex-row gap-6 relative overflow-hidden ${laporan.isEmergency ? 'border-4 border-red-500' : ''}`}>
